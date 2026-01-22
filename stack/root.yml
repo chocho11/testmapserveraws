@@ -18,7 +18,10 @@ Parameters:
         # # name of your S3 bucket
 
         # aws s3 cp stack/ s3://$BUCKET/ --recursive
+<<<<<<< HEAD
         # # Uploading yml files to S3 bucket $BUCKET"
+=======
+>>>>>>> 6678d26c6090dfda5ee0e80ab3c72f201a1742c9
 
         # aws cloudformation deploy \
         #  --stack-name mapserver-root \
