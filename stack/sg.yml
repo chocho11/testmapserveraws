@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Security Group"
+
+Resources:
+ 
+
+  AlbAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "SG pour App ALB - accepte tout le monde sur HTTP"
+      VpcId: !ImportValue vpc-mapserver-VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: alb-app-sg
+
+  AlbMapserverSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "SG pour EC2 MapServer - accepte uniquement ALB"
+      VpcId: !ImportValue vpc-mapserver-VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref AlbAppSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref AlbAppSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: alb-mapserver-sg
+
+  EFSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security Group pour EFS (NFS port 2049)"
+      VpcId: !ImportValue vpc-mapserver-VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 2049
+          ToPort: 2049
+          SourceSecurityGroupId: !Ref AlbMapserverSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: efs-sg
+
+Outputs:
+  AlbAppSecurityGroupId:
+      Description: "Security Group ID pour l'ALB applicatif"
+      Value: !Ref AlbAppSecurityGroup
+      Export:
+        Name: vpc-mapserver-AlbAppSecurityGroupId
+
+  AlbMapserverSecurityGroupId:
+      Description: "Security Group ID pour les instances MapServer"
+      Value: !Ref AlbMapserverSecurityGroup
+      Export:
+        Name: vpc-mapserver-MapserverSecurityGroupId
+
+  EFSSecurityGroupId:
+    Description: "Security Group ID pour EFS"
+    Value: !Ref EFSSecurityGroup
+    Export:
+      Name: vpc-mapserver-EFSSG

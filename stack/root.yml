@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Root stack for MapServer infrastructure"
+
+# ---------------------------
+    #déploiement à partir du cloudshell de aws
+
+    # curl -L \
+    #   https://raw.githubusercontent.com/chocho11/testmapserveraws/refs/heads/main/stack/root.yml \
+    #   -o root.yml
+
+    # aws cloudformation deploy \
+    #  --stack-name mapserver-root \
+    #  --template-file root.yml \
+    #  --capabilities CAPABILITY_NAMED_IAM
+# --------------------------
+Resources:
+
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: "https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/vpc.yml"
+
+  SGStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: "https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/sg.yml"
+    DependsOn: VPCStack
+
+  EFSStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: "https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/efs.yml"
+    DependsOn: SGStack
+
+  ASGStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: "https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/lb-asg-tg.yml"
+    DependsOn:
+      - SGStack
+      - EFSStack
