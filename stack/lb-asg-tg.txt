@@ -215,7 +215,20 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref TargetGroupPrivate
 
- 
+
+  ############################################
+  # wait condition for ASG private
+  ############################################
+
+  ASG2WaitHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+  ASG2WaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn: ASGPrivate
+    Properties:
+      Handle: !Ref ASG2WaitHandle
+      Timeout: 600
 
   ############################################
   # LAUNCH TEMPLATE
@@ -232,8 +245,7 @@ Resources:
         KeyName: mapser # a supprimer en prod
         NetworkInterfaces:
           - DeviceIndex: 0
-            # AssociatePublicIpAddress: false
-            AssociatePublicIpAddress: true # pour test depuis cloudshell
+            AssociatePublicIpAddress: false
             Groups:
               - !ImportValue vpc-mapserver-AlbAppSecurityGroupId
         UserData:
@@ -315,8 +327,7 @@ Resources:
         KeyName: mapser # a supprimer en prod
         NetworkInterfaces:
           - DeviceIndex: 0
-            #AssociatePublicIpAddress: false
-            AssociatePublicIpAddress: true # pour test depuis cloudshell
+            AssociatePublicIpAddress: false
             Groups:
               - !ImportValue vpc-mapserver-MapserverSecurityGroupId
         UserData:
@@ -381,6 +392,8 @@ Resources:
                   # --- Redémarrage final ---
                   systemctl enable apache2
                   systemctl restart apache2
+                  # --- Signal to CloudFormation that the instance is ready ---
+                  # cfn-signal -e $? --stack ${AWS::StackName} --resource ASG2WaitCondition --region ${AWS::Region}
               - {
                   EFS: !ImportValue vpc-mapserver-FileSystemId
                 }
