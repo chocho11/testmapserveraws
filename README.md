@@ -122,7 +122,7 @@ L’EFS sert de **stockage partagé** pour :
 
          BUCKET="testmapserver23666666" # name of your S3 bucket
 
-         aws s3 cp stack/ s3://$BUCKET/ --recursive # Uploading yml files to S3 bucket $BUCKET"
+         aws s3 cp s3://$BUCKET/ --recursive # Uploading yml files to S3 bucket $BUCKET"
 
          aws cloudformation deploy --stack-name mapserver-root --template-file root.yml --parameter-overrides TemplateBucket=$BUCKET --capabilities CAPABILITY_NAMED_IAM
  ```  
