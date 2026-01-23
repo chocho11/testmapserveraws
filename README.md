@@ -103,8 +103,13 @@ L’EFS sert de **stockage partagé** pour :
 ## 🛠 Déploiement
 
 ### 1. Uploader les templates dans un bucket S3
-vpc.yml sg.yml efs.yml lb-asg-tg.yml root.yml
-
+```bash
+- vpc.yml 
+- sg.yml 
+- efs.yml 
+- lb-asg-tg.yml 
+- root.yml
+```
 ### 2. Déployer le root stack
 ```bash
 # déploiement à partir du cloudshell de aws
@@ -120,7 +125,8 @@ vpc.yml sg.yml efs.yml lb-asg-tg.yml root.yml
          aws s3 cp stack/ s3://$BUCKET/ --recursive # Uploading yml files to S3 bucket $BUCKET"
 
          aws cloudformation deploy --stack-name mapserver-root --template-file root.yml --parameter-overrides TemplateBucket=$BUCKET --capabilities CAPABILITY_NAMED_IAM
-    
+ ```  
+ ```bash 
   📁 Structure du dépôt
 /
 ├── vpc.yml
@@ -128,7 +134,7 @@ vpc.yml sg.yml efs.yml lb-asg-tg.yml root.yml
 ├── efs.yml
 ├── lb-asg-tg.yml
 └── root.yml
-```
+``` 
 
 
 
