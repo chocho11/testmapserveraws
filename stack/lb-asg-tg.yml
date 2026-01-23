@@ -242,6 +242,7 @@ Resources:
       LaunchTemplateData:
         ImageId: !FindInMap [UbuntuAmi, !Ref "AWS::Region", Ami]
         InstanceType: !Ref InstanceType
+        KeyName: mapser
         NetworkInterfaces:
           - DeviceIndex: 0
             AssociatePublicIpAddress: false
@@ -323,6 +324,7 @@ Resources:
       LaunchTemplateData:
         ImageId: !FindInMap [UbuntuAmi, !Ref "AWS::Region", Ami]
         InstanceType: !Ref InstanceType
+        KeyName: mapser
         NetworkInterfaces:
           - DeviceIndex: 0
             AssociatePublicIpAddress: false
@@ -391,8 +393,7 @@ Resources:
                   systemctl enable apache2
                   systemctl restart apache2
                   # --- Signal to CloudFormation that the instance is ready ---
-                  cfn-signal -e $? --stack ${AWS::StackName} \
-                    --resource ASG2WaitCondition --region ${AWS::Region}
+                  # cfn-signal -e $? --stack ${AWS::StackName} --resource ASG2WaitCondition --region ${AWS::Region}
               - {
                   EFS: !ImportValue vpc-mapserver-FileSystemId
                 }
