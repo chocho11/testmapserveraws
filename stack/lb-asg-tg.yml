@@ -443,8 +443,8 @@ Resources:
       VPCZoneIdentifier:
         # - !ImportValue vpc-mapserver-PrivateSubnetA
         #- !ImportValue vpc-mapserver-PrivateSubnetB
-        - !ImportValue vpc-mapserver-PublicSubnetA
-        - !ImportValue vpc-mapserver-PublicSubnetB
+        - !ImportValue vpc-mapserver-PublicSubnetA # temporaire pour test
+        - !ImportValue vpc-mapserver-PublicSubnetB # temporaire pour test
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplateMapserver
         Version: !GetAtt LaunchTemplateMapserver.LatestVersionNumber
