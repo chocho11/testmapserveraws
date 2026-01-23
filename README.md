@@ -107,12 +107,20 @@ vpc.yml sg.yml efs.yml lb-asg-tg.yml root.yml
 
 ### 2. Déployer le root stack
 ```bash
-aws cloudformation deploy \
-  --stack-name mapserver-root \
-  --template-file root.yml \
-  --parameter-overrides TemplateBucket=<nom-du-bucket> \
-  --capabilities CAPABILITY_NAMED_IAM
+# déploiement à partir du cloudshell de aws
+         cd ~
+         curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/root.yml -o root.yml
+         curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/vpc.yml -o vpc.yml
+         curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/sg.yml -o sg.yml
+         curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/efs.yml -o efs.yml
+         curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/lb-asg-tg.yml -o lb-asg-tg.yml
 
+         BUCKET="testmapserver23666666" # name of your S3 bucket
+
+         aws s3 cp stack/ s3://$BUCKET/ --recursive # Uploading yml files to S3 bucket $BUCKET"
+
+         aws cloudformation deploy --stack-name mapserver-root --template-file root.yml --parameter-overrides TemplateBucket=$BUCKET --capabilities CAPABILITY_NAMED_IAM
+    
   📁 Structure du dépôt
 /
 ├── vpc.yml
