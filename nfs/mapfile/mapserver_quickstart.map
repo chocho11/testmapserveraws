@@ -1,6 +1,7 @@
 MAP
   NAME "world_map"
   STATUS ON
+  TRANSPARENT ON
   SIZE 800 600
   EXTENT -20037508.34 -20037508.34 20037508.34 20037508.34
   UNITS METERS
@@ -16,6 +17,8 @@ MAP
         METADATA
                 "ows_enable_request" "*"
                 "wms_enable_request" "*"
+		"wms_format" "image/png"
+    		"wms_transparent" "TRUE"
                 "wms_srs" "EPSG:3857"
                 "ows_srs" "EPSG:3857"
                 "wms_version" "1.1.1"
@@ -23,6 +26,17 @@ MAP
 
 
   END
+
+  OUTPUTFORMAT
+    NAME "png"
+    DRIVER "AGG/PNG"
+    MIMETYPE "image/png"
+    IMAGEMODE RGBA
+    EXTENSION "png"
+    TRANSPARENT ON
+  END
+
+
   
   LAYER
     NAME "countries"
@@ -31,6 +45,7 @@ MAP
         END
 
     TYPE POLYGON
+    TRANSPARENCY 100
     STATUS ON
     DATA "ne_110m_admin_0_countries"
     CLASS
