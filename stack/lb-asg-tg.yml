@@ -323,64 +323,86 @@ Resources:
           Fn::Base64:
             Fn::Sub: 
               - |
-                  #!/bin/bash
-                  set -e
-                  # --- mapserver  ---
-                  # --- Mise à jour système ---
-                  apt-get update -y
-                  apt-get install -y apache2 nfs-common gdal-bin cgi-mapserver mapserver-bin
-                  
-                  # --- AWS CloudFormation Helper Scripts ---
-                  sudo apt install -y heat-cfntools             
-                  # --- Préparation du point de montage NFS ---
-                  mkdir -p /srv/nfs
-                  mount -t nfs4 -o nfsvers=4.1 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ /srv/nfs
-                  #sudo mount -t nfs 192.168.1.21:/srv/nfs/share /srv/nfs
-                  sudo mount -a
-                  # Droits pour Apache
-                  chown -R www-data:www-data /srv/nfs
-                  chmod -R 755 /srv/nfs
-                  echo "${EFS}.efs.${AWS::Region}.amazonaws.com:/ /srv/nfs nfs4 defaults,_netdev 0 0" >> /etc/fstab
-                  #echo "192.168.1.21:/srv/nfs/share   /srv/nfs   nfs   defaults,_netdev   0   0" | sudo tee -a /etc/fstab > /dev/null
-                  # --- Initialisation du contenu partagé ---
-                  if [ ! -f /srv/nfs/.initialized ]; then
-                      # création des dossiers
-                      mkdir -p /srv/nfs/data
-                      mkdir -p /srv/nfs/mapfile
+                #!/bin/bash
+                set -e
 
-                      # téléchargement
-                      curl -o /srv/nfs/mapfile/mapserver_quickstart.map \
-                        https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/mapfile/mapserver_quickstart.map
+                # --- Mise à jour système ---
+                apt-get update -y
+                apt-get upgrade -y
 
-                      curl -o /srv/nfs/data/ne_110m_admin_0_countries.README.html \
-                        https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.README.html
+                apt install -y nfs-common
+                apt install -y apache2
+                apt install -y cgi-mapserver mapserver-bin gdal-bin
+                a2enmod cgi
 
-                      curl -o /srv/nfs/data/ne_110m_admin_0_countries.VERSION.txt \
-                        https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.VERSION.txt
+                # --- Configuration Apache pour MapServer ---
+                cat > /etc/apache2/conf-available/mapserver.conf << 'EOF'
+                # MapServer Apache Configuration
 
-                      curl -o /srv/nfs/data/ne_110m_admin_0_countries.cpg \
-                        https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.cpg
+                # Define an alias: requests to /cgi-bin/mapserv execute the mapserv program
+                ScriptAlias /cgi-bin/mapserv /usr/lib/cgi-bin/mapserv
 
-                      curl -o /srv/nfs/data/ne_110m_admin_0_countries.shp \
-                        https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.shp
+                # Configure the directory containing the mapserv executable
+                <Directory /usr/lib/cgi-bin/>
+                    Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+                    AllowOverride None
+                    Require all granted
+                </Directory>
 
-                      curl -o /srv/nfs/data/ne_110m_admin_0_countries.prj \
-                        https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.prj
+                # Optional: Set environment variables if needed (e.g., for PROJ data)
+                # SetEnv PROJ_LIB /usr/share/proj/
+                EOF
 
-                      curl -o /srv/nfs/data/ne_110m_admin_0_countries.shx \
-                        https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.shx
+                a2enconf mapserver
 
-                      curl -o /srv/nfs/data/ne_110m_admin_0_countries.dbf \
-                        https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.dbf
+                # --- AWS CloudFormation Helper Scripts ---
+                #apt install -y heat-cfntools
 
-                      # marquer l'initialisation
-                      touch /srv/nfs/.initialized
-                  fi
-                  # --- Activation du CGI MapServer ---
-                  a2enmod cgi
-                  # --- Redémarrage final ---
-                  systemctl enable apache2
-                  systemctl restart apache2
+                # --- Préparation du point de montage NFS ---
+                mkdir -p /srv/nfs
+                mount -t nfs4 -o nfsvers=4.1 ${EFS}.efs.${AWS::Region}.amazonaws.com:/share/ /srv/nfs
+
+                echo "${EFS}.efs.${AWS::Region}.amazonaws.com:/share/ /srv/nfs nfs4 defaults,_netdev 0 0" >> /etc/fstab
+
+                # --- Initialisation du contenu partagé ---
+                if [ ! -f /srv/nfs/.initialized ]; then
+                    mkdir -p /srv/nfs/data
+                    mkdir -p /srv/nfs/mapfile
+
+                    curl -o /srv/nfs/mapfile/mapserver_quickstart.map \
+                      https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/mapfile/mapserver_quickstart.map
+
+                    curl -o /srv/nfs/data/ne_110m_admin_0_countries.README.html \
+                      https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.README.html
+
+                    curl -o /srv/nfs/data/ne_110m_admin_0_countries.VERSION.txt \
+                      https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.VERSION.txt
+
+                    curl -o /srv/nfs/data/ne_110m_admin_0_countries.cpg \
+                      https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.cpg
+
+                    curl -o /srv/nfs/data/ne_110m_admin_0_countries.shp \
+                      https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.shp
+
+                    curl -o /srv/nfs/data/ne_110m_admin_0_countries.prj \
+                      https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.prj
+
+                    curl -o /srv/nfs/data/ne_110m_admin_0_countries.shx \
+                      https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.shx
+
+                    curl -o /srv/nfs/data/ne_110m_admin_0_countries.dbf \
+                      https://raw.githubusercontent.com/chocho11/testmapserveraws/main/nfs/data/ne_110m_admin_0_countries.dbf
+
+                    touch /srv/nfs/.initialized
+                fi
+
+                # --- Droits pour Apache ---
+                chown -R www-data:www-data /srv/nfs
+                chmod -R 755 /srv/nfs
+
+                # --- Redémarrage final ---
+                systemctl enable apache2
+                systemctl restart apache2
               - {
                   EFS: !ImportValue vpc-mapserver-FileSystemId
                 }
