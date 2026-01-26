@@ -65,7 +65,7 @@ Resources:
       Port: 80
       Protocol: HTTP
       TargetType: instance
-      HealthCheckPath: /
+      HealthCheckPath: /cgi-bin/mapserv?service=WMS&request=GetCapabilities&map=/srv/nfs/mapfile/mapserver_quickstart.map
       HealthCheckIntervalSeconds: 20
 
   ############################################
