@@ -163,7 +163,7 @@ Resources:
       LaunchTemplateName: lt-app
       LatestVersionNumber: 1
       LaunchTemplateData:
-        ImageId: "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp3}}"
+        ImageId: !Sub "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}"
         InstanceType: !Ref InstanceType
         NetworkInterfaces:
           - DeviceIndex: 0
@@ -244,7 +244,7 @@ Resources:
       LaunchTemplateName: lt-mapserver
       LatestVersionNumber: 1
       LaunchTemplateData:
-        ImageId: "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp3}}"
+        ImageId: !Sub "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}"
         InstanceType: !Ref InstanceType
         NetworkInterfaces:
           - DeviceIndex: 0
