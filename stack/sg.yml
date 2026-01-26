@@ -2,7 +2,24 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "Security Group"
 
 Resources:
- 
+
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for public ALB
+      VpcId: !ImportValue vpc-mapserver-VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
 
   AlbAppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -68,6 +85,13 @@ Resources:
           Value: efs-sg
 
 Outputs:
+ 
+  AlbSecurityGroupId:
+      Description: "Security Group ID pour l'Application Load Balancer"
+      Value: !Ref AlbSecurityGroup
+      Export:
+        Name: vpc-mapserver-AlbSecurityGroupId
+
   AlbAppSecurityGroupId:
       Description: "Security Group ID pour l'ALB applicatif"
       Value: !Ref AlbAppSecurityGroup

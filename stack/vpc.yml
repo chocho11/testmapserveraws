@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "VPC vpc-mapserver avec 2 AZ, subnets publics et privés"
 
+Conditions:
+  IsUSEast1: !Equals [ !Ref "AWS::Region", "us-east-1" ]
+  NotUSEast1: !Not [ !Equals [ !Ref "AWS::Region", "us-east-1" ] ]
+
 Parameters:
   VpcName:
     Type: String
@@ -9,6 +13,7 @@ Parameters:
 Resources:
   VPC:
     Type: AWS::EC2::VPC
+    Condition: IsUSEast1
     Properties:
       CidrBlock: 10.0.0.0/16
       EnableDnsSupport: true
@@ -141,6 +146,11 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
 
 Outputs:
+ 
+  RegionError:
+    Condition: NotUSEast1
+    Value: "Ce template doit être déployé en us-east-1"
+
   VpcId:
     Description: ID du VPC
     Value: !Ref VPC

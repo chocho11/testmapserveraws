@@ -1,72 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "Load Balancer + 2 Target Groups + 2 ASG"
 
- 
-Mappings:
-  # ubuntu 22 lts (jammy) AMI IDs par région au 06/2024
-  UbuntuAmi:
-    us-east-1:
-      Ami: ami-04b70fa74e45c3917
-    us-east-2:
-      Ami: ami-0f30a9c3a48f3fa79
-    us-west-1:
-      Ami: ami-0f8e81a3da6e2510a
-    us-west-2:
-      Ami: ami-0e5f882be1900e43b
-
-    af-south-1:
-      Ami: ami-0c3f3a8f1c5f7d8f4
-    ap-east-1:
-      Ami: ami-0a6b0d0a2f03f06c1
-    ap-south-1:
-      Ami: ami-0f5ee92e2d63afc18
-    ap-south-2:
-      Ami: ami-0f8b9f1d6c2e9e3c4
-    ap-southeast-1:
-      Ami: ami-0c9f0a2a5f5d1e0c3
-    ap-southeast-2:
-      Ami: ami-0f9c44e98f7f2e3d1
-    ap-southeast-3:
-      Ami: ami-0d8b1f2e3c4f5a6b7
-    ap-southeast-4:
-      Ami: ami-0e7b1c2d3f4a5b6c7
-    ap-northeast-1:
-      Ami: ami-0f3a2b1c4d5e6f7a8
-    ap-northeast-2:
-      Ami: ami-0e4b3c2d1f6a7b8c9
-    ap-northeast-3:
-      Ami: ami-0d5c4b3a2e1f7a8b9
-
-    ca-central-1:
-      Ami: ami-0f2e1d3c4b5a6f7e8
-
-    eu-central-1:
-      Ami: ami-0f3e2d1c4b5a6e7f8
-    eu-central-2:
-      Ami: ami-0e4d3c2b1a6f7e8d9
-
-    eu-west-1:
-      Ami: ami-0c1bc246476a557bb
-    eu-west-2:
-      Ami: ami-0f2b3c4d5e6a7b8c9
-    eu-west-3:
-      Ami: ami-0e8f7f4f6be3c0f3f
-
-    eu-north-1:
-      Ami: ami-0d3c2b1a4e5f6a7b8
-    eu-south-1:
-      Ami: ami-0c4b3a2d1e6f7a8b9
-    eu-south-2:
-      Ami: ami-0b5a4c3d2e1f6a7b8
-
-    me-south-1:
-      Ami: ami-0a6b5c4d3e2f1a7b8
-    me-central-1:
-      Ami: ami-096f1c2d3e4b5a6f7
-
-    sa-east-1:
-      Ami: ami-0f7e6d5c4b3a2f1e0
-
 Parameters:
   CertificateArn:
     Type: String
@@ -102,6 +36,8 @@ Resources:
       Subnets:
         - !ImportValue vpc-mapserver-PublicSubnetA
         - !ImportValue vpc-mapserver-PublicSubnetB
+      SecurityGroups:
+        - !ImportValue vpc-mapserver-AlbSecurityGroupId
       LoadBalancerAttributes:
         - Key: routing.http.drop_invalid_header_fields.enabled
           Value: true
@@ -227,7 +163,8 @@ Resources:
       LaunchTemplateName: lt-app
       LatestVersionNumber: 1
       LaunchTemplateData:
-        ImageId: !FindInMap [UbuntuAmi, !Ref "AWS::Region", Ami]
+        ImageId:
+          Fn::Sub: "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp3}}"
         InstanceType: !Ref InstanceType
         KeyName: mapser # a supprimer en prod
         NetworkInterfaces:
@@ -310,7 +247,8 @@ Resources:
       LaunchTemplateName: lt-mapserver
       LatestVersionNumber: 1
       LaunchTemplateData:
-        ImageId: !FindInMap [UbuntuAmi, !Ref "AWS::Region", Ami]
+        ImageId:
+          Fn::Sub: "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp3}}"
         InstanceType: !Ref InstanceType
         KeyName: mapser # a supprimer en prod
         NetworkInterfaces:
@@ -360,9 +298,9 @@ Resources:
 
                 # --- Préparation du point de montage NFS ---
                 mkdir -p /srv/nfs
-                mount -t nfs4 -o nfsvers=4.1 ${EFS}.efs.${AWS::Region}.amazonaws.com:/share/ /srv/nfs
+                mount -t nfs4 -o nfsvers=4.1 ${EFS}.efs.${AWS::Region}.amazonaws.com:/ /srv/nfs
 
-                echo "${EFS}.efs.${AWS::Region}.amazonaws.com:/share/ /srv/nfs nfs4 defaults,_netdev 0 0" >> /etc/fstab
+                echo "${EFS}.efs.${AWS::Region}.amazonaws.com:/ /srv/nfs nfs4 defaults,_netdev 0 0" >> /etc/fstab
 
                 # --- Initialisation du contenu partagé ---
                 if [ ! -f /srv/nfs/.initialized ]; then

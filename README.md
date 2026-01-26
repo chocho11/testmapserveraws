@@ -37,7 +37,8 @@ Chaque stack est indépendante, exporte ses ressources critiques et peut être r
 
 | Security Group | Rôle | Règles |
 |----------------|------|--------|
-| **AlbAppSecurityGroup** | SG du Load Balancer | HTTP/HTTPS depuis Internet |
+| **AlbSecurityGroup** | SG de l'application load balancer | HTTP/HTTPS depuis Internet |
+| **AlbAppSecurityGroup** | SG des instances de la webapp | HTTP/HTTPS depuis Internet |
 | **AlbMapserverSecurityGroup** | SG des instances MapServer | HTTP/HTTPS uniquement depuis le SG du LB |
 | **EFSSecurityGroup** | SG du EFS | NFS (2049) uniquement depuis les instances MapServer |
 
@@ -124,10 +125,10 @@ L’EFS sert de **stockage partagé** pour :
 
          aws s3 cp ~ s3://$BUCKET/ --recursive # Uploading yml files to S3 bucket $BUCKET"
 
-         aws cloudformation deploy --stack-name mapserver-root --template-file root.yml --parameter-overrides TemplateBucket=$BUCKET --capabilities CAPABILITY_NAMED_IAM
+         aws cloudformation deploy --stack-name mapserver-root --template-file root.yml --parameter-overrides TemplateBucket=$BUCKET --region us-east-1 --capabilities CAPABILITY_NAMED_IAM
  ```  
  ```bash 
-  📁 Structure du dépôt
+  📁 Les fichiers yml
 /
 ├── vpc.yml
 ├── sg.yml
@@ -135,8 +136,6 @@ L’EFS sert de **stockage partagé** pour :
 ├── lb-asg-tg.yml
 └── root.yml
 ``` 
-
-
 
 🔒 Sécurité
 - Instances MapServer non exposées à Internet
