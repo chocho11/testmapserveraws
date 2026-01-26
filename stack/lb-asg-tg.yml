@@ -167,7 +167,7 @@ Resources:
         InstanceType: !Ref InstanceType
         NetworkInterfaces:
           - DeviceIndex: 0
-            AssociatePublicIpAddress: false
+            AssociatePublicIpAddress: true
             Groups:
               - !ImportValue vpc-mapserver-AlbAppSecurityGroupId
         UserData:
