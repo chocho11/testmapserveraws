@@ -163,14 +163,11 @@ Resources:
       LaunchTemplateName: lt-app
       LatestVersionNumber: 1
       LaunchTemplateData:
-        ImageId:
-          Fn::Sub: "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp3}}"
+        ImageId: "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp3}}"
         InstanceType: !Ref InstanceType
-        KeyName: mapser # a supprimer en prod
         NetworkInterfaces:
           - DeviceIndex: 0
-            # AssociatePublicIpAddress: false
-            AssociatePublicIpAddress: true # pour test depuis cloudshell
+            AssociatePublicIpAddress: false
             Groups:
               - !ImportValue vpc-mapserver-AlbAppSecurityGroupId
         UserData:
@@ -247,14 +244,11 @@ Resources:
       LaunchTemplateName: lt-mapserver
       LatestVersionNumber: 1
       LaunchTemplateData:
-        ImageId:
-          Fn::Sub: "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp3}}"
+        ImageId: "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp3}}"
         InstanceType: !Ref InstanceType
-        KeyName: mapser # a supprimer en prod
         NetworkInterfaces:
           - DeviceIndex: 0
-            #AssociatePublicIpAddress: false
-            AssociatePublicIpAddress: true # pour test depuis cloudshell
+            AssociatePublicIpAddress: false
             Groups:
               - !ImportValue vpc-mapserver-MapserverSecurityGroupId
         UserData:
@@ -388,10 +382,8 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
-        # - !ImportValue vpc-mapserver-PrivateSubnetA
-        #- !ImportValue vpc-mapserver-PrivateSubnetB
-        - !ImportValue vpc-mapserver-PublicSubnetA # temporaire pour test
-        - !ImportValue vpc-mapserver-PublicSubnetB # temporaire pour test
+         - !ImportValue vpc-mapserver-PrivateSubnetA
+         - !ImportValue vpc-mapserver-PrivateSubnetB
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplateMapserver
         Version: !GetAtt LaunchTemplateMapserver.LatestVersionNumber
