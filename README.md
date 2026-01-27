@@ -38,9 +38,9 @@ Chaque stack est indépendante, exporte ses ressources critiques et peut être r
 | Security Group | Rôle | Règles |
 |----------------|------|--------|
 | **AlbSecurityGroup** | SG de l'application load balancer | HTTP/HTTPS depuis Internet |
-| **AlbAppSecurityGroup** | SG des instances de la webapp | HTTP/HTTPS depuis Internet |
+| **AlbAppSecurityGroup** | SG des instances de la webapp | HTTP/HTTPS uniquement depuis le SG du LB |
 | **AlbMapserverSecurityGroup** | SG des instances MapServer | HTTP/HTTPS uniquement depuis le SG du LB |
-| **EFSSecurityGroup** | SG du EFS | NFS (2049) uniquement depuis les instances MapServer |
+| **EFSSecurityGroup** | SG du EFS | NFS (2049) uniquement depuis le SG des instances MapServer |
 
 Tous les SG sont exportés pour être réutilisés dans les autres stacks.
 
@@ -159,98 +159,118 @@ Libre d’utilisation et d’adaptation selon vos besoins.
 ```mermaid
 flowchart TB
 
-%% ============================
-%% Styles AWS
-%% ============================
-classDef aws fill:#fefefe,stroke:#d5d5d5,stroke-width:1px,color:#333,border-radius:6px;
-classDef group fill:#f2f2f2,stroke:#999,stroke-width:1px,color:#333,border-radius:8px;
+    %% ============================
+    %% Internet & ALB
+    %% ============================
 
-%% ============================
-%% VPC
-%% ============================
-subgraph VPC["VPC 10.0.0.0/16"]
-class VPC group;
+    Internet((Internet))
+    ALB[["**Application Load Balancer**  
+    - HTTP/HTTPS  
+    - SG: AlbSecurityGroup"]]
 
-    subgraph PublicSubnets["Subnets Publics"]
-    class PublicSubnets group;
-        PSa["PublicSubnetA<br/>AZ A"]
-        PSb["PublicSubnetB<br/>AZ B"]
+    Internet --> ALB
+
+    %% ============================
+    %% Routing rules
+    %% ============================
+
+    subgraph Routing["ALB Listener Rules"]
+        direction TB
+        R1["/app.html → tg-public"]
+        R2["/cgi-bin/mapserv* → tg-private"]
     end
 
-    subgraph PrivateSubnets["Subnets Privés"]
-    class PrivateSubnets group;
-        PRa["PrivateSubnetA<br/>AZ A"]
-        PRb["PrivateSubnetB<br/>AZ B"]
+    ALB --> R1
+    ALB --> R2
+
+    %% ============================
+    %% Target Groups
+    %% ============================
+
+    TGPublic[["**Target Group: tg-public**  
+    - HealthCheck: '/'  
+    - Port 80"]]
+
+    TGPrivate[["**Target Group: tg-private**  
+    - HealthCheck: MapServer WMS  
+    - Port 80"]]
+
+    R1 --> TGPublic
+    R2 --> TGPrivate
+
+    %% ============================
+    %% ASG Public (Frontend)
+    %% ============================
+
+    subgraph ASG1["ASG Public (Frontend)"]
+        direction TB
+        EC2App1["EC2 Frontend  
+        - Apache  
+        - app.html  
+        - SG: AlbAppSecurityGroup  
+        - Subnets: Public A/B"]
     end
-end
 
-%% ============================
-%% Security Groups
-%% ============================
-SG_ALB["SG ALB<br/>HTTP/HTTPS depuis Internet"]
-SG_MS["SG MapServer<br/>HTTP/HTTPS depuis ALB"]
-SG_EFS["SG EFS<br/>NFS 2049 depuis MapServer"]
+    TGPublic --> ASG1
 
-class SG_ALB,SG_MS,SG_EFS aws;
+    %% ============================
+    %% ASG Private (MapServer)
+    %% ============================
 
-%% ============================
-%% Load Balancer
-%% ============================
-ALB["Application Load Balancer"]
-class ALB aws;
+    subgraph ASG2["ASG Private (MapServer)"]
+        direction TB
+        EC2Map1["EC2 Backend  
+        - Apache + MapServer CGI  
+        - Mount /srv/nfs  
+        - SG: AlbMapserverSecurityGroup  
+        - Subnets: Private A/B"]
+    end
 
-TG_Public["Target Group Public<br/>/app.html"]
-TG_Private["Target Group Private<br/>/cgi-bin/mapserv*"]
-class TG_Public,TG_Private aws;
+    TGPrivate --> ASG2
 
-%% ============================
-%% ASG Public (App)
-%% ============================
-ASG_Public["ASG Public<br/>Apache + app.html"]
-LT_App["Launch Template App"]
-class ASG_Public,LT_App aws;
+    %% ============================
+    %% EFS
+    %% ============================
 
-%% ============================
-%% ASG Private (MapServer)
-%% ============================
-ASG_Private["ASG Private<br/>MapServer + EFS"]
-LT_MS["Launch Template MapServer"]
-class ASG_Private,LT_MS aws;
+    subgraph EFS["Amazon EFS"]
+        direction TB
+        MT1["Mount Target A  
+        PrivateSubnetA"]
+        MT2["Mount Target B  
+        PrivateSubnetB"]
+    end
 
-%% ============================
-%% EFS
-%% ============================
-EFS["EFS<br/>Stockage partagé"]
-MTa["Mount Target A"]
-MTb["Mount Target B"]
-class EFS,MTa,MTb aws;
+    EC2Map1 --> EFS
+    EFS --> MT1
+    EFS --> MT2
 
-%% ============================
-%% Internet
-%% ============================
-Internet(("Internet"))
+    %% ============================
+    %% VPC
+    %% ============================
 
-%% ============================
-%% Relations
-%% ============================
+    subgraph VPC["VPC 10.0.0.0/16"]
+        direction LR
 
-Internet --> ALB
-SG_ALB --> ALB
+        subgraph Public["Public Subnets"]
+            PubA["PublicSubnetA (10.0.1.0/24)"]
+            PubB["PublicSubnetB (10.0.2.0/24)"]
+        end
 
-ALB -->|HTTP/HTTPS| TG_Public
-ALB -->|/cgi-bin/mapserv*| TG_Private
+        subgraph Private["Private Subnets"]
+            PrivA["PrivateSubnetA (10.0.11.0/24)"]
+            PrivB["PrivateSubnetB (10.0.12.0/24)"]
+        end
+    end
 
-TG_Public --> ASG_Public
-ASG_Public --> LT_App
-LT_App --> SG_ALB
+    ALB --- PubA
+    ALB --- PubB
 
-TG_Private --> ASG_Private
-ASG_Private --> LT_MS
-LT_MS --> SG_MS
+    ASG1 --- PubA
+    ASG1 --- PubB
 
-SG_MS --> SG_EFS
-SG_EFS --> EFS
+    ASG2 --- PrivA
+    ASG2 --- PrivB
 
-EFS --> MTa --> PRa
-EFS --> MTb --> PRb
+    EFS --- PrivA
+    EFS --- PrivB
 ```
