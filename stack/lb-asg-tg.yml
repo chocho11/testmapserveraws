@@ -165,6 +165,7 @@ Resources:
       LaunchTemplateData:
         ImageId: !Sub "{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}"
         InstanceType: !Ref InstanceType
+        KeyName: mapser
         NetworkInterfaces:
           - DeviceIndex: 0
             AssociatePublicIpAddress: true
