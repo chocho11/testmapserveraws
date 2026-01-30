@@ -14,7 +14,7 @@ Resources:
     Properties:
       TemplateURL: !Sub https://${TemplateBucket}.s3.amazonaws.com/vpc.yml
 
-  SGStack2:
+  SGStack:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
@@ -28,7 +28,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       TemplateURL: !Sub https://${TemplateBucket}.s3.amazonaws.com/efs.yml
-    DependsOn: SGStack2
+    DependsOn: SGStack
 
   ASGStack:
     Type: AWS::CloudFormation::Stack
@@ -37,5 +37,5 @@ Resources:
     Properties:
       TemplateURL: !Sub https://${TemplateBucket}.s3.amazonaws.com/lb-asg-tg.yml
     DependsOn:
-      - SGStack2
+      - SGStack
       - EFSStack
