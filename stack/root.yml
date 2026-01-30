@@ -28,7 +28,7 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       TemplateURL: !Sub https://${TemplateBucket}.s3.amazonaws.com/efs.yml
-    DependsOn: SGStack
+    DependsOn: SGStack2
 
   ASGStack:
     Type: AWS::CloudFormation::Stack
@@ -37,5 +37,5 @@ Resources:
     Properties:
       TemplateURL: !Sub https://${TemplateBucket}.s3.amazonaws.com/lb-asg-tg.yml
     DependsOn:
-      - SGStack
+      - SGStack2
       - EFSStack
