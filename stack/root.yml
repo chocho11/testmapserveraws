@@ -14,7 +14,7 @@ Resources:
     Properties:
       TemplateURL: !Sub https://${TemplateBucket}.s3.amazonaws.com/vpc.yml
 
-  SGStack:
+  SGStack2:
     Type: AWS::CloudFormation::Stack
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
