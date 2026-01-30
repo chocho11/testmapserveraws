@@ -1,5 +1,5 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: EFS pour MapServer avec mount targets dans 2 subnets privés
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "EFS pour MapServer avec mount targets dans 2 subnets privés"
 
 Resources:
   # ---------------------------
@@ -40,7 +40,7 @@ Resources:
 Outputs:
 
   FileSystemId:
-    Description: ID du EFS
+    Description: "ID du EFS"
     Value: !Ref FileSystem
     Export:
       Name: vpc-mapserver-FileSystemId

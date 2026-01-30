@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Root stack for MapServer infrastructure"
+Parameters:
+  TemplateBucket:
+    Type: String
+    Description: "Nom du bucket S3 contenant les templates CloudFormation"
+
+    # ---------------------------
+        # déploiement à partir du cloudshell de aws
+        # cd ~
+        # curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/root.yml -o root.yml
+        # curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/vpc.yml -o vpc.yml
+        # curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/sg.yml -o sg.yml
+        # curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/efs.yml -o efs.yml
+        # curl -L https://raw.githubusercontent.com/chocho11/testmapserveraws/main/stack/lb-asg-tg.yml -o lb-asg-tg.yml
+
+        # BUCKET="testmapserver23666666" # name of your S3 bucket
+
+        # aws s3 cp ~ s3://$BUCKET/ --recursive # Uploading yml files to S3 bucket $BUCKET
+
+        # aws cloudformation deploy --stack-name mapserver-root --template-file root.yml --parameter-overrides TemplateBucket=$BUCKET --capabilities CAPABILITY_NAMED_IAM
+    # --------------------------
+    
+Resources:
+
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/vpc.yml"
+
+  SGStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/sg.yml"
+    DependsOn: VPCStack
+
+  EFSStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/efs.yml"
+    DependsOn: SGStack
+  
+  ASGStack:
+    Type: AWS::CloudFormation::Stack
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TemplateURL: !Sub "https://${TemplateBucket}.s3.amazonaws.com/lb-asg-tg.yml"
+    DependsOn:
+      - SGStack
+      - EFSStack
