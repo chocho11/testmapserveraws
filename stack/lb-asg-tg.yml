@@ -165,7 +165,7 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName: lt-app
-      DefaultVersionNumber: !GetAtt LaunchTemplateApp.LatestVersionNumber
+      Version: !GetAtt LaunchTemplateApp.LatestVersionNumber
       LaunchTemplateData:
         ImageId: !Sub '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
         InstanceType: !Ref InstanceType
@@ -241,7 +241,7 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName: lt-mapserver
-      DefaultVersionNumber: !GetAtt LaunchTemplateMapserver.LatestVersionNumber
+      Version: !GetAtt LaunchTemplateMapserver.LatestVersionNumber
       LaunchTemplateData:
         ImageId: !Sub '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
         InstanceType: !Ref InstanceType
