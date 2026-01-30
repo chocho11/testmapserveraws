@@ -50,7 +50,7 @@ MAP
     DATA "ne_110m_admin_0_countries"
     CLASS
       STYLE
-        COLOR 200 200 200
+        COLOR 255 165 0
         OUTLINECOLOR 50 50 50
       END
     END
