@@ -165,7 +165,6 @@ Resources:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName: lt-app
-      Version: !GetAtt LaunchTemplateApp.LatestVersionNumber
       LaunchTemplateData:
         ImageId: !Sub '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
         InstanceType: !Ref InstanceType
@@ -213,7 +212,7 @@ Resources:
               }).addTo(map);
 
               // Couche WMS MapServer
-              var countries = L.tileLayer.wms("http://${ALBDNS}/cgi-bin/mapserv", {
+              var countries = L.tileLayer.wms("/cgi-bin/mapserv", {
                   map: "/srv/nfs/mapfile/mapserver_quickstart.map",   // <-- adapte si besoin
                   layers: "countries",
                   format: "image/png",
@@ -235,13 +234,12 @@ Resources:
               </script>
               </body>
               </html>EOF
-            - ALBDNS: !GetAtt ALB.DNSName
+            
 
   LaunchTemplateMapserver:
     Type: AWS::EC2::LaunchTemplate
     Properties:
       LaunchTemplateName: lt-mapserver
-      Version: !GetAtt LaunchTemplateMapserver.LatestVersionNumber
       LaunchTemplateData:
         ImageId: !Sub '{{resolve:ssm:/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id}}'
         InstanceType: !Ref InstanceType
@@ -348,7 +346,6 @@ Resources:
         - !ImportValue vpc-mapserver-PublicSubnetB
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplateApp
-        Version: !GetAtt LaunchTemplateApp.LatestVersionNumber
       MinSize: '1'
       MaxSize: '3'
       DesiredCapacity: '2'
@@ -380,7 +377,6 @@ Resources:
         - !ImportValue vpc-mapserver-PrivateSubnetB
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplateMapserver
-        Version: !GetAtt LaunchTemplateMapserver.LatestVersionNumber
       MinSize: '1'
       MaxSize: '3'
       DesiredCapacity: '2'
