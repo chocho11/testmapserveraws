@@ -343,6 +343,7 @@ Resources:
         - !ImportValue vpc-mapserver-PublicSubnetB
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplateApp
+        Version: !GetAtt LaunchTemplateApp.LatestVersionNumber
       MinSize: '1'
       MaxSize: '3'
       DesiredCapacity: '2'
@@ -374,6 +375,7 @@ Resources:
         - !ImportValue vpc-mapserver-PrivateSubnetB
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplateMapserver
+        Version: !GetAtt LaunchTemplateMapserver.LatestVersionNumber
       MinSize: '1'
       MaxSize: '3'
       DesiredCapacity: '2'
