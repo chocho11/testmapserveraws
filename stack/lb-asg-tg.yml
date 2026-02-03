@@ -174,67 +174,64 @@ Resources:
             AssociatePublicIpAddress: true
             Groups:
               - !ImportValue vpc-mapserver-AlbAppSecurityGroupId
-        UserData: !Base64
-          Fn::Sub:
-            - |
-              #!/bin/bash
-              set -e
-              # --- app carto client ---
-              apt-get update -y
-              apt-get install -y apache2
+        UserData: !Base64 |
+          #!/bin/bash
+          set -e
+          # --- app carto client ---
+          apt-get update -y
+          apt-get install -y apache2
 
-              # --- Création du site web ---
-              mkdir -p /var/www/html
-              cat > /var/www/html/app.html << 'EOF'
-              <!DOCTYPE html>
-              <html>
-              <head>
-                <meta charset="utf-8" />
-                <title>Leaflet + MapServer + Layers Control</title>
-                <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-                <style>
-                  #map { height: 100vh; }
-                </style>
-              </head>
-              <body>
+          # --- Création du site web ---
+          mkdir -p /var/www/html
+          cat > /var/www/html/app.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8" />
+            <title>Leaflet + MapServer + Layers Control</title>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+            <style>
+              #map { height: 100vh; }
+            </style>
+          </head>
+          <body>
 
-              <div id="map"></div>
-              <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-              <script>
+          <div id="map"></div>
+          <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+          <script>
 
-              // Carte en EPSG:4326
-              var map = L.map('map').setView([20, 0], 2);
+          // Carte en EPSG:4326
+          var map = L.map('map').setView([20, 0], 2);
 
-              // Fond OSM (optionnel)
-              var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                  maxZoom: 19,
-                  attribution: '© OpenStreetMap'
-              }).addTo(map);
+          // Fond OSM (optionnel)
+          var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '© OpenStreetMap'
+          }).addTo(map);
 
-              // Couche WMS MapServer
-              var countries = L.tileLayer.wms("/cgi-bin/mapserv", {
-                  map: "/srv/nfs/mapfile/mapserver_quickstart.map",   // <-- adapte si besoin
-                  layers: "countries",
-                  format: "image/png",
-                  transparent: true,
-                  version: "1.1.1"
-              }).addTo(map);
+          // Couche WMS MapServer
+          var countries = L.tileLayer.wms("/cgi-bin/mapserv", {
+              map: "/srv/nfs/mapfile/mapserver_quickstart.map",   // <-- adapte si besoin
+              layers: "countries",
+              format: "image/png",
+              transparent: true,
+              version: "1.1.1"
+          }).addTo(map);
 
-              // Contrôle des couches
-              var baseMaps = {
-                  "OpenStreetMap": osm
-              };
+          // Contrôle des couches
+          var baseMaps = {
+              "OpenStreetMap": osm
+          };
 
-              var overlayMaps = {
-                  "Countries (MapServer)": countries
-              };
+          var overlayMaps = {
+              "Countries (MapServer)": countries
+          };
 
-              L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+          L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
 
-              </script>
-              </body>
-              </html>EOF
-            
+          </script>
+          </body>
+          </html>EOF
 
   LaunchTemplateMapserver:
     Type: AWS::EC2::LaunchTemplate
